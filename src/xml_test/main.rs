@@ -1,8 +1,10 @@
 use clap::{Arg, Command, Parser};
 use std::fs::File;
-use std::path::PathBuf;
+use std::io;
+use std::io::{Error, ErrorKind};
+use std::path::{Path, PathBuf};
 use std::process::exit;
-use xml::reader::EventReader;
+use xml::reader::{EventReader, XmlEvent};
 
 ///simple prgramm to travers through xml documents
 #[derive(Parser, Debug)]
@@ -13,21 +15,33 @@ struct Args {
     pub xml_file_path: String,
 }
 
-fn main() {
-    let args = Args::parse();
-    let xml_file_path = PathBuf::from(args.xml_file_path);
-    println!("file: {}", xml_file_path.display());
+fn get_content_of_xml(xml_file_path: &Path) -> io::Result<String> {
     let xml_file = File::open(xml_file_path.clone()).unwrap_or_else(|err| {
-        eprintln!(
+        let error_msg = format!(
             "Error: could not open file {}: {}",
             xml_file_path.display(),
             err
         );
-        exit(-1)
+        // eprintln!(error_msg);
+        Error::new(ErrorKind::Other, error_msg);
+        exit(-1);
     });
 
     let event_reader = EventReader::new(xml_file);
+    let mut content = String::new();
     for event in event_reader.into_iter() {
-        println!("event: {:?}", event);
+        if let XmlEvent::Characters(text) = event.expect("ToDo") {
+            content.push_str(&text);
+        }
+    }
+    Ok(content)
+}
+
+fn main() {
+    let args = Args::parse();
+    let xml_file_path = PathBuf::from(args.xml_file_path);
+    println!("file: {}", xml_file_path.display());
+    if let Ok(content) = get_content_of_xml(&xml_file_path) {
+        println!("{:?}", content);
     }
 }
