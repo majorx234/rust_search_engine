@@ -1,0 +1,13 @@
+[package]
+name = "rust_search_engine"
+version = "0.1.0"
+authors = ["MajorX234 <majorx234@googlemail.com>"]
+edition = "2021"
+
+[dependencies]
+xml-rs = { version = "0.8.4"}
+clap = {version = "4.1.8", features = ["derive"]}
+
+[[bin]]
+name = "xml_test"
+path = "src/xml_test/main.rs"
