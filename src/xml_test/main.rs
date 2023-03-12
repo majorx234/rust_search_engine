@@ -1,5 +1,5 @@
 use clap::{Arg, Command, Parser};
-use std::fs::File;
+use std::fs::{self, File};
 use std::io;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
@@ -37,11 +37,16 @@ fn get_content_of_xml(xml_file_path: &Path) -> io::Result<String> {
     Ok(content)
 }
 
-fn main() {
+fn main() -> io::Result<()> {
     let args = Args::parse();
-    let xml_file_path = PathBuf::from(args.xml_file_path);
-    println!("file: {}", xml_file_path.display());
-    if let Ok(content) = get_content_of_xml(&xml_file_path) {
-        println!("{:?}", content);
+    let xml_dir_path = PathBuf::from(args.xml_file_path);
+    let xml_files = fs::read_dir(xml_dir_path)?;
+    for xml_file_path in xml_files {
+        let xml_file_path = xml_file_path?.path();
+        println!("file_path: {}", xml_file_path.display());
+        if let Ok(content) = get_content_of_xml(&xml_file_path) {
+            println!("{}", content);
+        }
     }
+    Ok(())
 }
