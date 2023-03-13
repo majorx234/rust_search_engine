@@ -7,7 +7,12 @@ edition = "2021"
 [dependencies]
 xml-rs = { version = "0.8.4"}
 clap = {version = "4.1.8", features = ["derive"]}
+serde_json = {version = "1.0.94" }
 
 [[bin]]
-name = "xml_test"
-path = "src/xml_test/main.rs"
+name = "xml_indexer"
+path = "src/xml_indexer/main.rs"
+
+[[bin]]
+name = "index_search"
+path = "src/index_search/main.rs"
