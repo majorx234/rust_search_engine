@@ -95,6 +95,7 @@ fn get_content_of_xml(xml_file_path: &Path) -> io::Result<String> {
 
     let event_reader = EventReader::new(xml_file);
     let mut content = String::new();
+    // println!("file: {:?}", xml_file_path);
     for event in event_reader.into_iter() {
         if let XmlEvent::Characters(text) = event.expect("ToDo") {
             content.push_str(&text);
@@ -105,35 +106,45 @@ fn get_content_of_xml(xml_file_path: &Path) -> io::Result<String> {
 }
 
 fn main() -> io::Result<()> {
-    let all_documents = HashMap::<PathBuf, HashMap<String, u32>>::new();
+    let mut all_documents = HashMap::<PathBuf, HashMap<String, u32>>::new();
+    let mut tf_global = HashMap::<String, u32>::new();
     let args = Args::parse();
     let xml_dir_path = PathBuf::from(args.xml_file_path);
     let xml_files = fs::read_dir(xml_dir_path)?;
 
     for xml_file_path in xml_files {
         let xml_file_path = xml_file_path?.path();
+        if xml_file_path.is_dir() {
+            continue;
+        }
         let mut tf = HashMap::<String, u32>::new();
         if let Ok(content) = get_content_of_xml(&xml_file_path) {
             let char_content = content.chars().collect::<Vec<_>>();
             // println!("{}", content);
             for token in Lexer::new(&char_content) {
-                println!(
-                    "{:?}",
-                    token
-                        .iter()
-                        .map(|x| x.to_ascii_uppercase())
-                        .collect::<String>()
-                );
+                let token = token
+                    .iter()
+                    .map(|x| x.to_ascii_uppercase())
+                    .collect::<String>();
+                tf.entry(token.clone())
+                    .and_modify(|counter| *counter += 1)
+                    .or_insert(1);
+                tf_global
+                    .entry(token)
+                    .and_modify(|counter| *counter += 1)
+                    .or_insert(1);
             }
+
+            all_documents.insert(xml_file_path, tf);
         }
     }
-    /*
-    for xml_file_path in xml_files {
-        let xml_file_path = xml_file_path?.path();
-        println!("}file_path: {}", xml_file_path.display());
-        if let Ok(content) = get_content_of_xml(&xml_file_path) {
-            println!("{}", content);
-        }
-    }*/
+
+    let mut stats = tf_global.iter().collect::<Vec<_>>();
+    stats.sort_by_key(|(_, f)| *f);
+    stats.reverse();
+    for entry in stats.iter().take(10) {
+        println!("{} => {}", entry.0, entry.1);
+    }
+
     Ok(())
 }
