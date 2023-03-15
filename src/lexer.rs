@@ -31,27 +31,32 @@ impl<'a> Lexer<'a> {
         return self.chop(n);
     }
 
-    pub fn next_token(&mut self) -> Option<&'a [char]> {
+    pub fn next_token(&mut self) -> Option<String> {
         self.trim_left();
         if self.content.len() == 0 {
             return None;
         }
         // check numerics:
         if self.content[0].is_numeric() {
-            return Some(self.chop_while(|x| x.is_numeric()));
+            return Some(self.chop_while(|x| x.is_numeric()).iter().collect());
         }
         // check keywords
         if self.content[0].is_alphabetic() {
-            return Some(self.chop_while(|x| x.is_alphabetic()));
+            return Some(
+                self.chop_while(|x| x.is_alphabetic())
+                    .iter()
+                    .map(|x| x.to_ascii_uppercase())
+                    .collect(),
+            );
         }
 
         // other tokens
-        return Some(self.chop(1));
+        return Some(self.chop(1).iter().collect());
     }
 }
 
 impl<'a> Iterator for Lexer<'a> {
-    type Item = &'a [char];
+    type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.next_token()

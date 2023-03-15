@@ -68,10 +68,6 @@ fn main() -> io::Result<()> {
             let char_content = content.chars().collect::<Vec<_>>();
             // println!("}{}", content);
             for token in Lexer::new(&char_content) {
-                let token = token
-                    .iter()
-                    .map(|x| x.to_ascii_uppercase())
-                    .collect::<String>();
                 tf.entry(token.clone())
                     .and_modify(|counter| *counter += 1)
                     .or_insert(1);
