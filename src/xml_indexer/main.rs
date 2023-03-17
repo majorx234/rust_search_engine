@@ -49,6 +49,17 @@ fn get_content_of_xml(xml_file_path: &Path) -> io::Result<String> {
     Ok(content)
 }
 
+fn save_index_as_json(
+    all_documents_index: &TermFreqIndex,
+    json_file_path: &PathBuf,
+) -> io::Result<()> {
+    // saving index to json
+    println!("Saving {}", json_file_path.to_str().unwrap());
+    let index_file = File::create(json_file_path)?;
+    serde_json::to_writer(index_file, &all_documents_index).expect("serde works");
+    Ok(())
+}
+
 fn main() -> io::Result<()> {
     let mut all_documents = TermFreqIndex::new();
     let mut tf_global = TermFreq::new();
@@ -80,11 +91,8 @@ fn main() -> io::Result<()> {
             all_documents.insert(xml_file_path, tf);
         }
     }
-    // saving index to json
-    println!("Saving {}", json_file_path.to_str().unwrap());
-    let index_file = File::create(json_file_path)?;
-    serde_json::to_writer(index_file, &all_documents).expect("serde works");
 
+    save_index_as_json(&all_documents, &json_file_path);
     for (path, tf) in all_documents {
         println!(
             "File: {} has {} unique tokens",
