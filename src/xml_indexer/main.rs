@@ -49,32 +49,39 @@ fn get_content_of_xml(xml_file_path: &Path) -> io::Result<String> {
 }
 
 fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<(TermFreqIndex, TermFreq), Box<Error>> {
-    let xml_files = fs::read_dir(xml_dir_path)?;
-
     let mut all_documents = TermFreqIndex::new();
     let mut tf_global = TermFreq::new();
 
-    for xml_file_path in xml_files {
-        let xml_file_path = xml_file_path?.path();
-        if xml_file_path.is_dir() {
-            continue;
-        }
-        println!("indexing: \"{}\"...", &xml_file_path.to_str().unwrap());
-        let mut tf = TermFreq::new();
-        if let Ok(content) = get_content_of_xml(&xml_file_path) {
-            let char_content = content.chars().collect::<Vec<_>>();
-            // println!("}{}", content);
-            for token in Lexer::new(&char_content) {
-                tf.entry(token.clone())
-                    .and_modify(|counter| *counter += 1)
-                    .or_insert(1);
-                tf_global
-                    .entry(token)
-                    .and_modify(|counter| *counter += 1)
-                    .or_insert(1);
-            }
+    let mut folder_stack = Vec::new();
+    folder_stack.push(xml_dir_path);
 
-            all_documents.insert(xml_file_path, tf);
+    while !folder_stack.is_empty() {
+        if let Some(current_folder) = folder_stack.pop() {
+            let xml_files = fs::read_dir(current_folder)?;
+            for xml_file_path in xml_files {
+                let xml_file_path = xml_file_path?.path();
+                if xml_file_path.is_dir() {
+                    folder_stack.push(xml_file_path);
+                    continue;
+                }
+                println!("indexing: \"{}\"...", &xml_file_path.to_str().unwrap());
+                let mut tf = TermFreq::new();
+                if let Ok(content) = get_content_of_xml(&xml_file_path) {
+                    let char_content = content.chars().collect::<Vec<_>>();
+                    // println!("}{}", content);
+                    for token in Lexer::new(&char_content) {
+                        tf.entry(token.clone())
+                            .and_modify(|counter| *counter += 1)
+                            .or_insert(1);
+                        tf_global
+                            .entry(token)
+                            .and_modify(|counter| *counter += 1)
+                            .or_insert(1);
+                    }
+
+                    all_documents.insert(xml_file_path, tf);
+                }
+            }
         }
     }
     return Ok((all_documents, tf_global));
