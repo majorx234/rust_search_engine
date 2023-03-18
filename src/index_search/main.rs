@@ -1,6 +1,6 @@
 use clap::{Arg, Command, Parser};
 use search_engine;
-use search_engine::{TermFreq, TermFreqIndex};
+use search_engine::model::{TermFreq, TermFreqPerDoc};
 use serde_json;
 use std::env::args;
 use std::fs::File;
@@ -26,7 +26,7 @@ fn main() -> io::Result<()> {
     );
     let json_file = File::open(&json_file_path)?;
 
-    let tf_index: TermFreqIndex = serde_json::from_reader(json_file)?;
+    let tf_index: TermFreqPerDoc = serde_json::from_reader(json_file)?;
     println!(
         "{} contains {} files",
         json_file_path.to_str().unwrap(),

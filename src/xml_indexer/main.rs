@@ -1,5 +1,6 @@
 use clap::{Arg, Command, Parser};
-use search_engine::{lexer::Lexer, TermFreq, TermFreqIndex};
+use search_engine::lexer::Lexer;
+use search_engine::model::{TermFreq, TermFreqPerDoc};
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, Error, ErrorKind};
@@ -48,8 +49,8 @@ fn get_content_of_xml(xml_file_path: &Path) -> io::Result<String> {
     Ok(content)
 }
 
-fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<(TermFreqIndex, TermFreq), Box<Error>> {
-    let mut all_documents = TermFreqIndex::new();
+fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<(TermFreqPerDoc, TermFreq), Box<Error>> {
+    let mut all_documents = TermFreqPerDoc::new();
     let mut tf_global = TermFreq::new();
 
     let mut folder_stack = Vec::new();
@@ -88,7 +89,7 @@ fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<(TermFreqIndex, TermFreq
 }
 
 fn save_index_as_json(
-    all_documents_index: &TermFreqIndex,
+    all_documents_index: &TermFreqPerDoc,
     json_file_path: &PathBuf,
 ) -> io::Result<()> {
     // saving index to json
