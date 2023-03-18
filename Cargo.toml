@@ -8,6 +8,7 @@ edition = "2021"
 xml-rs = { version = "0.8.4"}
 clap = {version = "4.1.8", features = ["derive"]}
 serde_json = {version = "1.0.94" }
+tiny_http = {version = "0.11"}
 
 [lib]
 name = "search_engine"
@@ -20,3 +21,7 @@ path = "src/xml_indexer/main.rs"
 [[bin]]
 name = "index_search"
 path = "src/index_search/main.rs"
+
+[[bin]]
+name = "index_search_web_server"
+path = "src/index_search_web_server/main.rs"
