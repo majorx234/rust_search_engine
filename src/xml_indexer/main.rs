@@ -67,6 +67,7 @@ fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<(TermFreqPerDoc, TermFre
                 }
                 println!("indexing: \"{}\"...", &xml_file_path.to_str().unwrap());
                 let mut tf = TermFreq::new();
+                let mut nterm = 0;
                 if let Ok(content) = get_content_of_xml(&xml_file_path) {
                     let char_content = content.chars().collect::<Vec<_>>();
                     // println!("}{}", content);
@@ -78,9 +79,10 @@ fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<(TermFreqPerDoc, TermFre
                             .entry(token)
                             .and_modify(|counter| *counter += 1)
                             .or_insert(1);
+                        nterm += 1;
                     }
 
-                    all_documents.insert(xml_file_path, tf);
+                    all_documents.insert(xml_file_path, (nterm, tf));
                 }
             }
         }
@@ -106,7 +108,7 @@ fn main() -> io::Result<()> {
 
     if let Ok((all_documents, tf_global)) = add_folder_to_index(xml_dir_path) {
         save_index_as_json(&all_documents, &json_file_path);
-        for (path, tf) in all_documents {
+        for (path, (n, tf)) in all_documents {
             println!(
                 "File: {} has {} unique tokens",
                 path.to_str().unwrap(),
