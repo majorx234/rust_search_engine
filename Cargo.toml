@@ -9,6 +9,7 @@ xml-rs = { version = "0.8.4"}
 clap = {version = "4.1.8", features = ["derive"]}
 serde_json = {version = "1.0.94" }
 tiny_http = {version = "0.11"}
+serde = { version = "1.0.152", features = ["derive"] }
 
 [lib]
 name = "search_engine"
