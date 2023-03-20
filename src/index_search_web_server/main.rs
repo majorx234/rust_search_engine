@@ -1,11 +1,13 @@
 use clap::{Arg, Command, Parser};
 use search_engine;
 use search_engine::model::{TermFreq, TermFreqPerDoc};
+use search_engine::server::serve_static_file;
 use serde_json;
 use std::env::args;
 use std::fs::File;
 use std::io;
 use std::path::PathBuf;
+use std::str::FromStr;
 use tiny_http::{self, Method, Response, Server};
 
 /// index search
@@ -48,15 +50,27 @@ fn main() -> io::Result<()> {
         match (request.method(), request.url()) {
             (Method::Get, "/") | (Method::Get, "/index.html") => {
                 println!("get index.html");
+                let index_html = PathBuf::from_str("index.html").unwrap();
+                serve_static_file(request, &index_html, "text/html; charset=utf-8");
+            }
+            (Method::Get, "/index.html") | (Method::Get, "/index.html") => {
+                println!("get index.html");
+                let index_html = PathBuf::from_str("index.html").unwrap();
+                serve_static_file(request, &index_html, "text/html; charset=utf-8");
             }
             (Method::Get, "/index.js") => {
                 println!("get index.js");
+                let index_js = PathBuf::from_str("index.js").unwrap();
+                serve_static_file(request, &index_js, "text/javascript; charset=utf-8");
+            }
+            (Method::Get, "/get_test") => {
+                println!("get test");
             }
             (Method::Post, "/api/search") => {
                 println!("post");
             }
             _ => {
-                println!("else");
+                println!("else {} {}", request.method(), request.url());
             }
         }
     }

@@ -18,7 +18,11 @@ fn serve_400(request: Request, message: &str) -> io::Result<()> {
     )
 }
 
-fn serve_static_file(request: Request, file_path: &PathBuf, content_type: &str) -> io::Result<()> {
+pub fn serve_static_file(
+    request: Request,
+    file_path: &PathBuf,
+    content_type: &str,
+) -> io::Result<()> {
     let content_type_header = Header::from_bytes("Content-Type", content_type).expect("Header ok");
 
     let file = match File::open(file_path) {
