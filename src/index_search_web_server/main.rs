@@ -1,13 +1,13 @@
 use clap::{Arg, Command, Parser};
 use search_engine;
-use search_engine::model::{TermFreq, TermFreqPerDoc};
-use search_engine::server::serve_static_file;
+use search_engine::model::{TermFreq, TermFreqPerDoc, TermIndex};
+use search_engine::server::{serve_search, serve_static_file};
 use serde_json;
 use std::env::args;
 use std::fs::File;
 use std::io;
 use std::path::PathBuf;
-use std::str::FromStr;
+use std::str::{from_utf8, FromStr};
 use tiny_http::{self, Method, Response, Server};
 
 /// index search
@@ -29,11 +29,12 @@ fn main() -> io::Result<()> {
     );
     let json_file = File::open(&json_file_path)?;
 
-    let tf_index: TermFreqPerDoc = serde_json::from_reader(json_file)?;
+    let tf_index: TermIndex = serde_json::from_reader(json_file)?;
     println!(
-        "{} contains {} files",
+        "{} contains {} files {} terms",
         json_file_path.to_str().unwrap(),
-        tf_index.len()
+        tf_index.term_freq_per_doc.len(),
+        tf_index.doc_freq.len()
     );
 
     // tiny http server
