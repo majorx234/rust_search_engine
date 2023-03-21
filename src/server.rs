@@ -1,7 +1,9 @@
+use crate::model::TermIndex;
 use std::fs::File;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::str;
+use std::str::{from_utf8, FromStr};
 use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 
 fn serve_404(request: Request) -> io::Result<()> {
@@ -41,4 +43,15 @@ pub fn serve_static_file(
     };
 
     request.respond(Response::from_file(file).with_header(content_type_header))
+}
+
+pub fn serve_search(index: &TermIndex, mut request: Request) -> io::Result<()> {
+    let mut buf = String::new();
+    if let Err(err) = request.as_reader().read_to_string(&mut buf) {
+        eprintln!("ERROR: could not read the body of the request: {err}");
+        // return serve_500(request);
+    }
+
+    println!("body: {}", buf);
+    Ok(())
 }
