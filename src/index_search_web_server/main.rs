@@ -68,6 +68,7 @@ fn main() -> io::Result<()> {
                 println!("get test");
             }
             (Method::Post, "/api/search") => {
+                serve_search(&tf_index, request);
                 println!("post");
             }
             _ => {
