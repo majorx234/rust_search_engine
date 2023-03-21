@@ -41,6 +41,20 @@ function httpGetTest() {
     httpGet("get_test", variable_context, response_handler);
 }
 
+function httpPostSearch() {
+    var end_point_name = "api/search";
+    var variable_context = "post search: ";
+    var search_input = document.getElementById("search_input").value;
+    outputToConsole(search_input);
+    var param_name = "search_input";
+    var response_handler = (response_text) => {
+        var json_data = JSON.parse(response_text);
+        outputToConsole(variable_context + json_data);
+    };
+    httpPost(end_point_name, param_name, search_input, variable_context, response_handler);
+}
+
+
 function clearConsole() {
     document.getElementById("console").innerHTML = "";
 }
@@ -51,4 +65,8 @@ document.getElementById("clear_button").onclick = function() {
 
 document.getElementById("get_test_button").onclick = function() {
     httpGetTest();
+};
+
+document.getElementById("search_button").onclick = function() {
+    httpPostSearch();
 };
