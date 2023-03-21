@@ -1,6 +1,6 @@
 use clap::{Arg, Command, Parser};
 use search_engine::lexer::Lexer;
-use search_engine::model::{TermFreq, TermFreqPerDoc};
+use search_engine::model::{TermFreq, TermFreqPerDoc, TermIndex};
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, Error, ErrorKind};
@@ -49,7 +49,7 @@ fn get_content_of_xml(xml_file_path: &Path) -> io::Result<String> {
     Ok(content)
 }
 
-fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<(TermFreqPerDoc, TermFreq), Box<Error>> {
+fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<TermIndex, Box<Error>> {
     let mut all_documents = TermFreqPerDoc::new();
     let mut tf_global = TermFreq::new();
 
@@ -87,17 +87,18 @@ fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<(TermFreqPerDoc, TermFre
             }
         }
     }
-    return Ok((all_documents, tf_global));
+    let term_index = TermIndex {
+        term_freq_per_doc: all_documents,
+        doc_freq: tf_global,
+    };
+    return Ok(term_index);
 }
 
-fn save_index_as_json(
-    all_documents_index: &TermFreqPerDoc,
-    json_file_path: &PathBuf,
-) -> io::Result<()> {
+fn save_index_as_json(term_index: &TermIndex, json_file_path: &PathBuf) -> io::Result<()> {
     // saving index to json
     println!("Saving {}", json_file_path.to_str().unwrap());
     let index_file = File::create(json_file_path)?;
-    serde_json::to_writer(index_file, &all_documents_index).expect("serde works");
+    serde_json::to_writer(index_file, &term_index).expect("serde works");
     Ok(())
 }
 
@@ -106,9 +107,9 @@ fn main() -> io::Result<()> {
     let json_file_path = PathBuf::from(args.json_file_path);
     let xml_dir_path = PathBuf::from(args.xml_file_path);
 
-    if let Ok((all_documents, tf_global)) = add_folder_to_index(xml_dir_path) {
-        save_index_as_json(&all_documents, &json_file_path);
-        for (path, (n, tf)) in all_documents {
+    if let Ok(term_index) = add_folder_to_index(xml_dir_path) {
+        save_index_as_json(&term_index, &json_file_path);
+        for (path, (n, tf)) in term_index.term_freq_per_doc {
             println!(
                 "File: {} has {} unique tokens",
                 path.to_str().unwrap(),
@@ -116,7 +117,7 @@ fn main() -> io::Result<()> {
             )
         }
 
-        let mut stats = tf_global.iter().collect::<Vec<_>>();
+        let mut stats = term_index.doc_freq.iter().collect::<Vec<_>>();
         stats.sort_by_key(|(_, f)| *f);
         stats.reverse();
         for entry in stats.iter().take(10) {
