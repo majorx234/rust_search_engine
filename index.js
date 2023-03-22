@@ -13,7 +13,7 @@ function httpGet(endpoint_name, variable_context, response_handler) {
             response_handler(this.responseText);         
         }
     };
-    var endpoint = "http://127.0.0.1:8000/" + endpoint_name;
+    var endpoint = "http://" + location.hostname + ":8000/" + endpoint_name;
     xmlHttp.open("GET", endpoint, true);
     xmlHttp.send(null);
 }
@@ -25,7 +25,7 @@ function httpPost(endpoint_name, param_name, param_value, variable_context, resp
             response_handler(this.responseText);
         }
     };
-    var endpoint = "http://127.0.0.1:8000/" + endpoint_name;
+    var endpoint = "http://" + location.hostname + ":8000/" + endpoint_name;
     xmlHttp.open("POST", endpoint, true);
     xmlHttp.setRequestHeader('Content-type', 'application/json');
     var param_json = "{ \"" + param_name + "\" : \"" + param_value + "\" }";
