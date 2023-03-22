@@ -4,6 +4,8 @@ use std::io;
 use std::path::PathBuf;
 use std::str;
 use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
+// TODO: change to serde
+use json;
 
 fn serve_404(request: Request) -> io::Result<()> {
     request.respond(Response::from_string("404").with_status_code(StatusCode(404)))
