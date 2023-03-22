@@ -42,7 +42,7 @@ impl TermIndex {
         (n / m).log10()
     }
 
-    pub fn search_query<'a>(self: &'a Self, query: &'a [char]) -> Vec<(&'a Path, f32)> {
+    pub fn search_query<'a>(self: &'a Self, query: &'a [char]) -> Result<Vec<(&'a Path, f32)>, ()> {
         let mut result = Vec::<(&Path, f32)>::new();
         let tokens = Lexer::new(&query).collect::<Vec<_>>();
         for (path, (n, tf_table)) in &self.term_freq_per_doc {
@@ -55,6 +55,6 @@ impl TermIndex {
         }
         result.sort_by(|(_, rank1), (_, rank2)| rank1.partial_cmp(rank2).unwrap());
         result.reverse();
-        result
+        Ok(result)
     }
 }
