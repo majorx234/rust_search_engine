@@ -1,14 +1,12 @@
-use clap::{Arg, Command, Parser};
-use search_engine;
-use search_engine::model::{TermFreq, TermFreqPerDoc, TermIndex};
+use clap::Parser;
+use search_engine::model::TermIndex;
 use search_engine::server::{serve_search, serve_static_file};
 use serde_json;
-use std::env::args;
 use std::fs::File;
 use std::io;
 use std::path::PathBuf;
-use std::str::{from_utf8, FromStr};
-use tiny_http::{self, Method, Response, Server};
+use std::str::FromStr;
+use tiny_http::{self, Method, Server};
 
 /// index search
 #[derive(Parser, Debug)]
@@ -52,23 +50,18 @@ fn main() -> io::Result<()> {
             (Method::Get, "/") | (Method::Get, "/index.html") => {
                 println!("get index.html");
                 let index_html = PathBuf::from_str("index.html").unwrap();
-                serve_static_file(request, &index_html, "text/html; charset=utf-8");
-            }
-            (Method::Get, "/index.html") | (Method::Get, "/index.html") => {
-                println!("get index.html");
-                let index_html = PathBuf::from_str("index.html").unwrap();
-                serve_static_file(request, &index_html, "text/html; charset=utf-8");
+                serve_static_file(request, &index_html, "text/html; charset=utf-8")?;
             }
             (Method::Get, "/index.js") => {
                 println!("get index.js");
                 let index_js = PathBuf::from_str("index.js").unwrap();
-                serve_static_file(request, &index_js, "text/javascript; charset=utf-8");
+                serve_static_file(request, &index_js, "text/javascript; charset=utf-8")?;
             }
             (Method::Get, "/get_test") => {
                 println!("get test");
             }
             (Method::Post, "/api/search") => {
-                serve_search(&tf_index, request);
+                serve_search(&tf_index, request)?;
                 println!("post");
             }
             _ => {

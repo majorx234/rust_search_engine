@@ -1,9 +1,8 @@
 use crate::model::TermIndex;
 use std::fs::File;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str;
-use std::str::{from_utf8, FromStr};
 use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 
 fn serve_404(request: Request) -> io::Result<()> {

@@ -1,4 +1,4 @@
-use clap::{Arg, Command, Parser};
+use clap::Parser;
 use search_engine::lexer::Lexer;
 use search_engine::model::{TermFreq, TermFreqPerDoc, TermIndex};
 use std::collections::HashMap;
@@ -108,7 +108,7 @@ fn main() -> io::Result<()> {
     let xml_dir_path = PathBuf::from(args.xml_file_path);
 
     if let Ok(term_index) = add_folder_to_index(xml_dir_path) {
-        save_index_as_json(&term_index, &json_file_path);
+        save_index_as_json(&term_index, &json_file_path)?;
         for (path, (n, tf)) in term_index.term_freq_per_doc {
             println!(
                 "File: {} has {} unique tokens",
