@@ -7,6 +7,16 @@ use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 // TODO: change to serde
 use json;
 
+fn get_con_content_type(request: &Request) -> &str {
+    for header in request.headers() {
+        match header.field.as_str().as_str() {
+            "Content-type" => return header.value.as_str(),
+            _ => (),
+        }
+    }
+    ""
+}
+
 fn serve_404(request: Request) -> io::Result<()> {
     request.respond(Response::from_string("404").with_status_code(StatusCode(404)))
 }
@@ -47,31 +57,32 @@ pub fn serve_static_file(
 }
 
 pub fn serve_search(index: &TermIndex, mut request: Request) -> io::Result<()> {
-    let mut buf = String::new();
-    if let Err(err) = request.as_reader().read_to_string(&mut buf) {
-        eprintln!("ERROR: could not read the body of the request: {err}");
-        return serve_500(request);
-    }
-    println!("body: {}", buf);
-    let body_json_data = json::parse(&buf).unwrap();
-    if let Some(search_input) = body_json_data["search_input"].as_str() {
-        let search_input_chars: Vec<char> = search_input.chars().collect();
-        let result = match index.search_query(&search_input_chars) {
-            Ok(result) => result,
-            Err(()) => return serve_500(request),
-        };
+    if get_con_content_type(&request) == "application/json" {
+        let mut buf = String::new();
+        if let Err(err) = request.as_reader().read_to_string(&mut buf) {
+            eprintln!("ERROR: could not read the body of the request: {err}");
+            return serve_500(request);
+        }
+        let body_json_data = json::parse(&buf).unwrap();
+        if let Some(search_input) = body_json_data["search_input"].as_str() {
+            let search_input_chars: Vec<char> = search_input.chars().collect();
+            let result = match index.search_query(&search_input_chars) {
+                Ok(result) => result,
+                Err(()) => return serve_500(request),
+            };
 
-        let json = match serde_json::to_string(&result.iter().take(20).collect::<Vec<_>>()) {
-            Ok(json) => json,
-            Err(err) => {
-                eprintln!("ERROR: could not convert search results to JSON: {err}");
-                return serve_500(request);
-            }
-        };
+            let json = match serde_json::to_string(&result.iter().take(20).collect::<Vec<_>>()) {
+                Ok(json) => json,
+                Err(err) => {
+                    eprintln!("ERROR: could not convert search results to JSON: {err}");
+                    return serve_500(request);
+                }
+            };
 
-        let content_type_header = Header::from_bytes("Content-Type", "application/json")
-            .expect("That we didn't put any garbage in the headers");
-        return request.respond(Response::from_string(&json).with_header(content_type_header));
+            let content_type_header = Header::from_bytes("Content-Type", "application/json")
+                .expect("That we didn't put any garbage in the headers");
+            return request.respond(Response::from_string(&json).with_header(content_type_header));
+        }
     }
     Ok(())
 }
