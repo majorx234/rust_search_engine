@@ -1,11 +1,10 @@
 use crate::model::TermIndex;
+use serde_json::{Result, Value};
 use std::fs::File;
 use std::io;
 use std::path::PathBuf;
 use std::str;
 use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
-// TODO: change to serde
-use json;
 
 fn get_con_content_type(request: &Request) -> &str {
     for header in request.headers() {
@@ -63,7 +62,7 @@ pub fn serve_search(index: &TermIndex, mut request: Request) -> io::Result<()> {
             eprintln!("ERROR: could not read the body of the request: {err}");
             return serve_500(request);
         }
-        let body_json_data = json::parse(&buf).unwrap();
+        let body_json_data: Value = serde_json::from_str(&buf)?;
         if let Some(search_input) = body_json_data["search_input"].as_str() {
             let search_input_chars: Vec<char> = search_input.chars().collect();
             let result = match index.search_query(&search_input_chars) {
