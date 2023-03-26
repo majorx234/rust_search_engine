@@ -1,10 +1,10 @@
 use crate::model::TermIndex;
-use serde_json::{Result, Value};
+use serde_json::Value;
 use std::fs::File;
 use std::io;
 use std::path::PathBuf;
 use std::str;
-use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
+use tiny_http::{Header, Request, Response, StatusCode};
 
 fn get_con_content_type(request: &Request) -> &str {
     for header in request.headers() {
