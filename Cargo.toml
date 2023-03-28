@@ -16,8 +16,8 @@ name = "search_engine"
 path = "src/lib.rs"
 
 [[bin]]
-name = "xml_indexer"
-path = "src/xml_indexer/main.rs"
+name = "file_indexer"
+path = "src/file_indexer/main.rs"
 
 [[bin]]
 name = "index_search"

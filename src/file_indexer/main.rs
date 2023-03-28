@@ -25,6 +25,23 @@ struct Args {
     pub json_file_path: String,
 }
 
+fn get_content_of_txt(file_path: &Path) -> io::Result<String> {
+    match fs::read_to_string(file_path) {
+        Ok(content) => {
+            return Ok(content);
+        }
+        Err(err) => {
+            let error_msg = format!(
+                "Error: could not open file {}: {}",
+                file_path.display(),
+                err
+            );
+            // eprintln!(error_msg);
+            return Err(Error::new(ErrorKind::Other, error_msg));
+        }
+    }
+}
+
 fn get_content_of_xml(xml_file_path: &Path) -> io::Result<String> {
     let xml_file = File::open(xml_file_path.clone()).unwrap_or_else(|err| {
         let error_msg = format!(
@@ -49,6 +66,32 @@ fn get_content_of_xml(xml_file_path: &Path) -> io::Result<String> {
     Ok(content)
 }
 
+fn get_content_of_file(file_path: &Path) -> io::Result<String> {
+    let extension = file_path
+        .extension()
+        .ok_or_else(|| {
+            let error_msg = format!(
+                "ERROR: can't detect file type of {} without extension",
+                file_path.display()
+            );
+            Error::new(ErrorKind::Other, error_msg)
+        })?
+        .to_string_lossy();
+    match extension.as_ref() {
+        "xhtml" | "xml" => get_content_of_xml(file_path),
+        // TODO: specialized parser for markdown files
+        "txt" | "md" => get_content_of_txt(file_path),
+        _ => {
+            eprintln!(
+                "ERROR: can't detect file type of {file_path}: unsupported extension {extension}",
+                file_path = file_path.display(),
+                extension = extension
+            );
+            Err(Error::new(ErrorKind::Other, "file type no known!"))
+        }
+    }
+}
+
 fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<TermIndex, Box<Error>> {
     let mut all_documents = TermFreqPerDoc::new();
     let mut tf_global = TermFreq::new();
@@ -68,7 +111,7 @@ fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<TermIndex, Box<Error>> {
                 println!("indexing: \"{}\"...", &xml_file_path.to_str().unwrap());
                 let mut tf = TermFreq::new();
                 let mut nterm = 0;
-                if let Ok(content) = get_content_of_xml(&xml_file_path) {
+                if let Ok(content) = get_content_of_file(&xml_file_path) {
                     let char_content = content.chars().collect::<Vec<_>>();
                     // println!("}{}", content);
                     for token in Lexer::new(&char_content) {
