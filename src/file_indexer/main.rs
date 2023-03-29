@@ -27,9 +27,7 @@ struct Args {
 
 fn get_content_of_txt(file_path: &Path) -> io::Result<String> {
     match fs::read_to_string(file_path) {
-        Ok(content) => {
-            return Ok(content);
-        }
+        Ok(content) => Ok(content),
         Err(err) => {
             let error_msg = format!(
                 "Error: could not open file {}: {}",
@@ -37,7 +35,7 @@ fn get_content_of_txt(file_path: &Path) -> io::Result<String> {
                 err
             );
             // eprintln!(error_msg);
-            return Err(Error::new(ErrorKind::Other, error_msg));
+            Err(Error::new(ErrorKind::Other, error_msg))
         }
     }
 }
