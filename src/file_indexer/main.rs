@@ -90,7 +90,8 @@ fn get_content_of_file(file_path: &Path) -> io::Result<String> {
     }
 }
 
-fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<TermIndex, Box<Error>> {
+fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<(TermIndex, usize), Box<Error>> {
+    let mut skipped = 0;
     let mut all_documents = TermFreqPerDoc::new();
     let mut tf_global = TermFreq::new();
 
@@ -99,17 +100,17 @@ fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<TermIndex, Box<Error>> {
 
     while !folder_stack.is_empty() {
         if let Some(current_folder) = folder_stack.pop() {
-            let xml_files = fs::read_dir(current_folder)?;
-            for xml_file_path in xml_files {
-                let xml_file_path = xml_file_path?.path();
-                if xml_file_path.is_dir() {
-                    folder_stack.push(xml_file_path);
+            let files = fs::read_dir(current_folder)?;
+            for file_path in files {
+                let file_path = file_path?.path();
+                if file_path.is_dir() {
+                    folder_stack.push(file_path);
                     continue;
                 }
-                println!("indexing: \"{}\"...", &xml_file_path.to_str().unwrap());
+                println!("indexing: \"{}\"...", &file_path.to_str().unwrap());
                 let mut tf = TermFreq::new();
                 let mut nterm = 0;
-                if let Ok(content) = get_content_of_file(&xml_file_path) {
+                if let Ok(content) = get_content_of_file(&file_path) {
                     let char_content = content.chars().collect::<Vec<_>>();
                     // println!("}{}", content);
                     for token in Lexer::new(&char_content) {
@@ -123,7 +124,10 @@ fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<TermIndex, Box<Error>> {
                         nterm += 1;
                     }
 
-                    all_documents.insert(xml_file_path, (nterm, tf));
+                    all_documents.insert(file_path, (nterm, tf));
+                } else {
+                    skipped *= 1;
+                    continue;
                 }
             }
         }
@@ -132,7 +136,7 @@ fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<TermIndex, Box<Error>> {
         term_freq_per_doc: all_documents,
         doc_freq: tf_global,
     };
-    return Ok(term_index);
+    return Ok((term_index, skipped));
 }
 
 fn save_index_as_json(term_index: &TermIndex, json_file_path: &PathBuf) -> io::Result<()> {
@@ -148,7 +152,7 @@ fn main() -> io::Result<()> {
     let json_file_path = PathBuf::from(args.json_file_path);
     let xml_dir_path = PathBuf::from(args.xml_file_path);
 
-    if let Ok(term_index) = add_folder_to_index(xml_dir_path) {
+    if let Ok((term_index, skipped)) = add_folder_to_index(xml_dir_path) {
         save_index_as_json(&term_index, &json_file_path)?;
         for (path, (n, tf)) in term_index.term_freq_per_doc {
             println!(
@@ -164,6 +168,7 @@ fn main() -> io::Result<()> {
         for entry in stats.iter().take(10) {
             println!("{} => {}", entry.0, entry.1);
         }
+        println!("Skipped {} files.", skipped);
 
         return Ok(());
     }
