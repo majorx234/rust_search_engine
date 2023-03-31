@@ -1,3 +1,5 @@
+use crate::snowball::{algorithms, SnowballEnv};
+
 #[derive(Debug)]
 pub struct Lexer<'a> {
     content: &'a [char],
@@ -42,12 +44,15 @@ impl<'a> Lexer<'a> {
         }
         // check keywords
         if self.content[0].is_alphabetic() {
-            return Some(
-                self.chop_while(|x| x.is_alphabetic())
-                    .iter()
-                    .map(|x| x.to_ascii_uppercase())
-                    .collect(),
-            );
+            let term = self
+                .chop_while(|x| x.is_alphabetic())
+                .iter()
+                .map(|x| x.to_ascii_lowercase())
+                .collect::<String>();
+            let mut env = SnowballEnv::create(&term);
+            algorithms::english_stemmer::stem(&mut env);
+            let stemmed_term = env.get_current().to_string();
+            return Some(stemmed_term);
         }
 
         // other tokens
