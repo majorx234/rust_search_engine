@@ -30,26 +30,26 @@ impl TermIndex {
         serde_json::to_writer(BufWriter::new(index_file), &self).expect("serde works");
         Ok(())
     }
-    fn compute_tf(t: &str, n: usize, d: &TermFreq) -> f32 {
+    fn compute_tf(term: &str, n: usize, doc_tf: &TermFreq) -> f32 {
         let n = n as f32;
-        let m = d.get(t).cloned().unwrap_or(0) as f32;
+        let m = doc_tf.get(term).cloned().unwrap_or(0) as f32;
         m / n
     }
 
-    fn compute_idf(t: &str, n: usize, df: &DocFreq) -> f32 {
+    fn compute_idf(term: &str, n: usize, docs_tf: &DocFreq) -> f32 {
         let n = n as f32;
-        let m = df.get(t).cloned().unwrap_or(1) as f32;
+        let m = docs_tf.get(term).cloned().unwrap_or(1) as f32;
         (n / m).log10()
     }
 
-    pub fn search_query<'a>(self: &'a Self, query: &'a [char]) -> Result<Vec<(&'a Path, f32)>, ()> {
+    pub fn search_query(&self, query: &[char]) -> Result<Vec<(&Path, f32)>, ()> {
         let mut result = Vec::<(&Path, f32)>::new();
-        let tokens = Lexer::new(&query).collect::<Vec<_>>();
-        for (path, (n, tf_table)) in &self.term_freq_per_doc {
+        let tokens = Lexer::new(query).collect::<Vec<_>>();
+        for (path, (num_terms, tf_table)) in &self.term_freq_per_doc {
             let mut rank = 0f32;
-            for token in &tokens {
-                rank += Self::compute_tf(&token, *n, tf_table)
-                    * Self::compute_idf(&token, self.term_freq_per_doc.len(), &self.doc_freq);
+            for term in &tokens {
+                rank += Self::compute_tf(term, *num_terms, tf_table)
+                    * Self::compute_idf(term, self.term_freq_per_doc.len(), &self.doc_freq);
             }
             result.push((path, rank));
         }
