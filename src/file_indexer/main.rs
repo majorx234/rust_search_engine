@@ -3,7 +3,7 @@ use search_engine::lexer::Lexer;
 use search_engine::model::{TermFreq, TermFreqPerDoc, TermIndex};
 use std::collections::HashMap;
 use std::fs::{self, File};
-use std::io::{self, Error, ErrorKind};
+use std::io::{self, BufReader, BufWriter, Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::process::exit;
 use xml::reader::{EventReader, XmlEvent};
@@ -52,7 +52,7 @@ fn get_content_of_xml(xml_file_path: &Path) -> io::Result<String> {
         exit(-1);
     });
 
-    let event_reader = EventReader::new(xml_file);
+    let event_reader = EventReader::new(BufReader::new(xml_file));
     let mut content = String::new();
     // println!("file: {:?}", xml_file_path);
     for event in event_reader.into_iter() {
@@ -143,7 +143,7 @@ fn save_index_as_json(term_index: &TermIndex, json_file_path: &PathBuf) -> io::R
     // saving index to json
     println!("Saving {}", json_file_path.to_str().unwrap());
     let index_file = File::create(json_file_path)?;
-    serde_json::to_writer(index_file, &term_index).expect("serde works");
+    serde_json::to_writer(BufWriter::new(index_file), &term_index).expect("serde works");
     Ok(())
 }
 
