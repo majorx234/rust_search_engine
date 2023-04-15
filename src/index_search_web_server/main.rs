@@ -38,13 +38,6 @@ fn main() -> io::Result<()> {
     // tiny http server
     let server = Server::http("0.0.0.0:8000").unwrap();
     for request in server.incoming_requests() {
-        println!(
-            "received request! method: {:?}, url: {:?}, headers: {:?}",
-            request.method(),
-            request.url(),
-            request.headers()
-        );
-
         // register endpoints
         match (request.method(), request.url()) {
             (Method::Get, "/") | (Method::Get, "/index.html") => {

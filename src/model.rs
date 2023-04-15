@@ -48,8 +48,10 @@ impl TermIndex {
         for (path, (num_terms, tf_table)) in &self.term_freq_per_doc {
             let mut rank = 0f32;
             for term in &tokens {
-                rank += Self::compute_tf(term, *num_terms, tf_table)
-                    * Self::compute_idf(term, self.term_freq_per_doc.len(), &self.doc_freq);
+                let tf_rank = Self::compute_tf(term, *num_terms, tf_table);
+                let idf_rank =
+                    Self::compute_idf(term, self.term_freq_per_doc.len(), &self.doc_freq);
+                rank += tf_rank * idf_rank;
             }
             result.push((path, rank));
         }

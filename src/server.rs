@@ -80,7 +80,7 @@ pub fn serve_search(index: &TermIndex, mut request: Request) -> io::Result<()> {
 
             let content_type_header = Header::from_bytes("Content-Type", "application/json")
                 .expect("That we didn't put any garbage in the headers");
-            return request.respond(Response::from_string(&json).with_header(content_type_header));
+            return request.respond(Response::from_string(json).with_header(content_type_header));
         }
     }
     Ok(())
