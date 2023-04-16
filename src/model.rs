@@ -30,16 +30,16 @@ impl TermIndex {
         serde_json::to_writer(BufWriter::new(index_file), &self).expect("serde works");
         Ok(())
     }
-    fn compute_tf(term: &str, n: usize, doc_tf: &TermFreq) -> f32 {
-        let n = n as f32;
+    fn compute_tf(term: &str, num_token_in_query: usize, doc_tf: &TermFreq) -> f32 {
+        let num_token_in_query = num_token_in_query as f32;
         let m = doc_tf.get(term).cloned().unwrap_or(0) as f32;
-        m / n
+        m / num_token_in_query
     }
 
-    fn compute_idf(term: &str, n: usize, docs_tf: &DocFreq) -> f32 {
-        let n = n as f32;
-        let m = docs_tf.get(term).cloned().unwrap_or(1) as f32;
-        (n / m).log10()
+    fn compute_idf(term: &str, num_docs: usize, docs_tf: &DocFreq) -> f32 {
+        let num_docs = num_docs as f32;
+        let m = 1.0 + docs_tf.get(term).cloned().unwrap_or(0) as f32;
+        (num_docs / m).log10() + 1.0
     }
 
     pub fn search_query(&self, query: &[char]) -> Result<Vec<(&Path, f32)>, ()> {
@@ -48,7 +48,7 @@ impl TermIndex {
         for (path, (num_terms, tf_table)) in &self.term_freq_per_doc {
             let mut rank = 0f32;
             for term in &tokens {
-                let tf_rank = Self::compute_tf(term, *num_terms, tf_table);
+                let tf_rank = Self::compute_tf(term, tokens.len(), tf_table);
                 let idf_rank =
                     Self::compute_idf(term, self.term_freq_per_doc.len(), &self.doc_freq);
                 rank += tf_rank * idf_rank;
