@@ -16,6 +16,10 @@ name = "search_engine"
 path = "src/lib.rs"
 
 [[bin]]
+name = "stemmer"
+path = "src/stemmer/main.rs"
+
+[[bin]]
 name = "file_indexer"
 path = "src/file_indexer/main.rs"
 
