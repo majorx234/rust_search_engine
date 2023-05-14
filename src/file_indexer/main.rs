@@ -126,7 +126,7 @@ fn add_folder_to_index(xml_dir_path: PathBuf) -> Result<(TermIndex, usize), Box<
 
                     all_documents.insert(file_path, (nterm, tf));
                 } else {
-                    skipped *= 1;
+                    skipped += 1;
                     continue;
                 }
             }
