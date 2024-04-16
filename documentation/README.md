@@ -1,0 +1,2 @@
+# Used Technics
+- preprocess index
